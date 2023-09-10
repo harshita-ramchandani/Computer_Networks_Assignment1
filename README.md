@@ -3,6 +3,9 @@ The Group members:
 Harshita Ramchandani- 20110074
 Ishani Chogle- 20110048
 
+Please make sure to insatll the 'pcap' library installed in your system, by running the command:
+$sudo apt-get install libpcap-dev
+
 Part1 the code is to be complied with the command
 $gcc -o part1 part1.c -lpcap
 
@@ -24,12 +27,9 @@ Our job was to make a raw socket and capture the packets.
 * After the capture loop completes, the program prints the total number of packets processed and closes the pcap file using pcap_close.
 
 To run the program after compilation:
-$./pcap_sniffer <pcap_file>
+$./part1 <pcap_file>
 
 Here, pass the path to the pcap file from which you want to sniff the packets from. (The packets are sniffed from the ongoing network but according the need of the question the packets are sniffed from the pcap file.)
-
-Please make sure to insatll the 'pcap' library installed in your system, by running the command:
-$sudo apt-get install libpcap-dev
 
 Part2 
 
@@ -57,3 +57,7 @@ Our list of questions to be answered:
 * The port sum we accquired we checked for the ports and a source port with equal value to the port sum led us to the person Oscar Wilde.
 * We searched the keyword milshake and in the packet details (payload data) we found the flavour to be Banana.
 
+To run the program after compilation:
+$./part2 <pcap_file>
+
+Here, pass the path to the pcap file from which you want to sniff the packets from.
