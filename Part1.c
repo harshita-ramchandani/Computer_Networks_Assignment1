@@ -1,3 +1,5 @@
+//(20110074+20110048)%3=1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
