@@ -2,97 +2,64 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <pcap.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include <netinet/udp.h>
-#include <netinet/if_ether.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 
-int main() {
-    int raw_socket;
-    char packet_buffer[65536];
-    socklen_t socklen;
-    int data_size;
-    int packet_count = 0;
-    int client_port = 0;
-    int server_port = 0;
+typedef struct {
+    struct in_addr src_ip;
+    struct in_addr dest_ip;
+    uint16_t src_port;
+    uint16_t dest_port;
+} Flow;
+int count=0;
+void packet_handler(unsigned char *user_data, const struct pcap_pkthdr *pkthdr, const unsigned char *packet) {
+    struct ip *ip_header = (struct ip *)(packet + 14); // Assuming Ethernet II header
 
-    // Create a raw socket to capture all Ethernet frames
-    raw_socket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    if (raw_socket == -1) {
-        perror("Socket creation failed");
+    if (ip_header->ip_p == IPPROTO_TCP) {
+        struct tcphdr *tcp_header = (struct tcphdr *)(packet + 14 + (ip_header->ip_hl << 2));
+        Flow flow;
+        flow.src_ip = ip_header->ip_src;
+        flow.dest_ip = ip_header->ip_dst;
+        flow.src_port = ntohs(tcp_header->th_sport);
+        flow.dest_port = ntohs(tcp_header->th_dport);
+
+        printf("Packet captured. Source IP: %s, Source Port: %d, Destination IP: %s, Destination Port: %d, Length: %d\n",
+            inet_ntoa(flow.src_ip), flow.src_port, inet_ntoa(flow.dest_ip), flow.dest_port, pkthdr->len);
+            count++;
+
+        // Add your packet processing logic here for different flows
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <pcap_file>\n", argv[0]);
         exit(1);
     }
 
-    while (1) {
-        socklen = sizeof(struct sockaddr);
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pcap_t *pcap = pcap_open_offline(argv[1], errbuf);
 
-        // Receive a packet
-        data_size = recvfrom(raw_socket, packet_buffer, sizeof(packet_buffer), 0, NULL, &socklen);
-        if (data_size < 0) {
-            perror("Packet capture error");
-            close(raw_socket);
-            exit(1);
-        }
-
-        // Parse the Ethernet header
-        struct ethhdr* eth_header = (struct ethhdr*)packet_buffer;
-
-        // Check if the packet contains an IP header
-        if (ntohs(eth_header->h_proto) == ETH_P_IP) {
-            // Parse the IP header
-            struct ip* ip_header = (struct ip*)(packet_buffer + sizeof(struct ethhdr));
-
-            // Check if the packet contains TCP or UDP data
-            if (ip_header->ip_p == IPPROTO_TCP || ip_header->ip_p == IPPROTO_UDP) {
-                // Parse the transport layer header
-                void* transport_header = (packet_buffer + sizeof(struct ethhdr) + (ip_header->ip_hl << 2));
-
-                // Extract source and destination IP addresses and ports
-                char source_ip[INET_ADDRSTRLEN];
-                char dest_ip[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, &(ip_header->ip_src), source_ip, INET_ADDRSTRLEN);
-                inet_ntop(AF_INET, &(ip_header->ip_dst), dest_ip, INET_ADDRSTRLEN);
-
-                // Check if it's TCP or UDP and extract port numbers accordingly
-                if (ip_header->ip_p == IPPROTO_TCP) {
-                    struct tcphdr* tcp_header = (struct tcphdr*)transport_header;
-                    uint16_t source_port = ntohs(tcp_header->th_sport);
-                    uint16_t dest_port = ntohs(tcp_header->th_dport);
-
-                    // Update counters
-                    client_port = source_port;
-                    server_port = dest_port;
-
-                    // Print the information for the TCP flow
-                    printf("Client IP: %s:%d\n", source_ip, source_port);
-                    printf("Server IP: %s:%d\n", dest_ip, dest_port);
-                } else if (ip_header->ip_p == IPPROTO_UDP) {
-                    struct udphdr* udp_header = (struct udphdr*)transport_header;
-                    uint16_t source_port = ntohs(udp_header->uh_sport);
-                    uint16_t dest_port = ntohs(udp_header->uh_dport);
-
-                    // Update counters
-                    client_port = source_port;
-                    server_port = dest_port;
-
-                    // Print the information for the UDP flow
-                    printf("Client IP: %s:%d\n", source_ip, source_port);
-                    printf("Server IP: %s:%d\n", dest_ip, dest_port);
-                }
-
-                // Increment the packet count
-                packet_count++;
-            }
-        }
-
-        // Print the number of packets captured
-        printf("Packets Captured: %d\n", packet_count);
+    if (pcap == NULL) {
+        printf("Error opening pcap file: %s\n", errbuf);
+        exit(1);
     }
+
+    printf("Sniffing packets from %s...\n", argv[1]);
+
+    if (pcap_loop(pcap, 0, packet_handler, NULL) < 0) {
+        printf("Error in pcap_loop: %s\n", pcap_geterr(pcap));
+        pcap_close(pcap);
+        exit(1);
+    }
+    printf("total packets: %d", count);
+    pcap_close(pcap);
+
+    return 0;
+}
+
 
     close(raw_socket);
     return 0;
