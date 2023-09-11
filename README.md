@@ -10,7 +10,7 @@ Part1 the code is to be complied with the command
 $gcc -o part1 part1.c -lpcap
 
 Where "part1" is the name of the excutable file to be made and "Part1.c" is the file name.
-Please make sure you are inthe correct directory.
+Please make sure you are in the correct directory.
 For Part1, (20110074+20110048)%3=1. Therefore, the refered file according to the instruction is 1.pcap.
 
 Implimentation in brief:
@@ -37,7 +37,7 @@ Part2 the code is to be complied with the command
 $gcc -o part2 part2.c -lpcap
 
 Where "part2" is the name of the excutable file to be made and "Part2.c" is the file name.
-Please make sure you are inthe correct directory.
+Please make sure you are in the correct directory.
 For Part1, (20110074+20110048)%4=2. Therefore, the refered file according to the instruction is 2.pcap.
 
 Our list of questions to be answered:
@@ -61,3 +61,22 @@ To run the program after compilation:
 $./part2 <pcap_file>
 
 Here, pass the path to the pcap file from which you want to sniff the packets from.
+
+Part3
+
+Part3 the code is to be complied with the command
+$gcc -o part3 part3.c -lpcap
+
+Where "part3" is the name of the excutable file to be made and "Part3.c" is the file name.
+Please make sure you are in the correct directory.
+
+* The code captures network packets using a raw socket and processes them to extract source IP, destination IP, source port, and destination port information.
+* The code then prompts the user to enter a port number and uses the ss command to find the associated process ID (PID) for that port.
+* The extracted PID is printed to the console in a clear format.
+* Variable and function names have been changed to be more descriptive and self-explanatory for better readability.
+
+To run the program after compilation:
+$./part2 
+
+Please note: Although there are no other arguments to be passed during function run. The code assumes the network interface to be eth0 as in most cases. However, appropriate changes to the variable have to be made for using any other interfaces.
+
