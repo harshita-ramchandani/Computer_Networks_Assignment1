@@ -75,6 +75,8 @@ Please make sure you are in the correct directory.
 * The extracted PID is printed to the console in a clear format.
 * Variable and function names have been changed to be more descriptive and self-explanatory for better readability.
 
+![alt text](https://github.com/harshita-ramchandani/Computer_Networks_Assignment1/blob/main/terminal_ss.png)
+
 To run the program after compilation:
 $./part2 
 
